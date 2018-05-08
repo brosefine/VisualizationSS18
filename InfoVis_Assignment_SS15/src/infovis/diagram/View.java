@@ -2,6 +2,7 @@ package infovis.diagram;
 
 import infovis.diagram.elements.Element;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -17,9 +18,10 @@ public class View extends JPanel{
 	private Model model = null;
 	private Color color = Color.BLUE;
 	private double scale = 1;
+	private double overviewScale = 1;
 	private double translateX= 0;
 	private double translateY=0;
-	private Rectangle2D marker = new Rectangle2D.Double();
+	private Rectangle2D marker = new Rectangle2D.Double(0, 0, 300, 250);
 	private Rectangle2D overviewRect = new Rectangle2D.Double(0, 0, 300, 250);   
 
 	public Model getModel() {
@@ -40,16 +42,20 @@ public class View extends JPanel{
 		
 		Graphics2D g2D = (Graphics2D) g;
 		
-		double overviewScale = overviewRect.getHeight() / model.getMaxY();
+	
+		overviewScale = overviewRect.getHeight() / model.getMaxY();
 		if(overviewRect.getWidth()/model.getMaxX() < overviewScale) overviewScale = overviewRect.getWidth()/model.getMaxX();
+		double marker_scale = overviewScale / scale;
 		
+		//diagram world
 		g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
 		g2D.clearRect(0, 0, getWidth(), getHeight());
+		g2D.translate(translateX, translateY);
 		g2D.scale(scale, scale);
-		
 		paintDiagram(g2D);
-		//back to normal size
+		//back to normal size , position
 		g2D.scale(1/scale, 1/scale);
+		g2D.translate(-translateX, -translateY);
 		//draw overview
 		g2D.setColor(Color.WHITE);
 		g2D.fill(overviewRect);
@@ -59,15 +65,20 @@ public class View extends JPanel{
 				
 		g2D.setClip(overviewRect);
 		g2D.scale(overviewScale, overviewScale);
-				
-		paintDiagram(g2D);
 		
-		g2D.scale(1/scale, 1/scale);
+		paintDiagram(g2D);
+		//diagram in overviewworld
+		g2D.scale(1/overviewScale, 1/overviewScale);
+		
+		//g2D.scale(1/scale, 1/scale);
 		//set marker
-		marker.setRect(0, 0, getWidth(), getHeight());
+		setMarker(marker.getX(), marker.getY(), getWidth()*marker_scale, getHeight()*marker_scale);
+		//updateMarker(marker.getX(), marker.getY());
 		//draw marker
 		g2D.setColor(Color.RED);
 		g2D.draw(marker);
+		
+		
 
 	}
 	private void paintDiagram(Graphics2D g2D){
@@ -81,6 +92,9 @@ public class View extends JPanel{
 	}
 	public double getScale(){
 		return scale;
+	}
+	public double getOverviewScale(){
+		return overviewScale;
 	}
 	public double getTranslateX() {
 		return translateX;
@@ -98,14 +112,26 @@ public class View extends JPanel{
 		setTranslateX(x);
 		setTranslateY(y);
 	}	
-	public void updateMarker(int x, int y){
-		marker.setRect(x, y, 16, 10);
+	public void updateMarker(double d, double e){
+		marker.setRect(d, e, getWidth(), getHeight());
 	}
 	public Rectangle2D getMarker(){
 		return marker;
 	}
+	public void setMarker(Rectangle2D marker){
+		this.marker = marker;
+	}
+	public void setMarker(double x, double y, double w, double h){
+		this.marker = new Rectangle2D.Double(x, y, w, h);
+	}
+	public void setMarker(double d, double e) {
+		this.marker.setRect(d, e,  getWidth(), getHeight());
+	}
 	public boolean markerContains(int x, int y){
 		return marker.contains(x, y);
+	}
+	public Rectangle2D getOverview() {
+		return overviewRect;
 	}
 }
  

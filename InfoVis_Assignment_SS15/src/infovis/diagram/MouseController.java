@@ -13,6 +13,7 @@ import java.awt.Color;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -88,12 +89,18 @@ public class MouseController implements MouseListener,MouseMotionListener {
 	public void mouseExited(MouseEvent arg0) {
 	}
 	public void mousePressed(MouseEvent e) {
-		int x = e.getX();
-		int y = e.getY();
+		double x = e.getX() - view.getTranslateX();
+		double y = e.getY() - view.getTranslateY();
 		double scale = view.getScale();
 		
-	   
-	   if (edgeDrawMode){
+	   if(view.getOverview().contains(x, y)) {
+		   Rectangle2D marker = view.getMarker();
+		   if(marker.contains(x, y)) {
+			   System.out.println("marker");
+			   mouseOffsetX = x - marker.getX();
+			   mouseOffsetY = y - marker.getY();	
+		   }
+	   } else if (edgeDrawMode){
 			drawingEdge = new DrawingEdge((Vertex)getElementContainingPosition(x/scale,y/scale));
 			model.addElement(drawingEdge);
 		} else if (fisheyeMode){
@@ -107,8 +114,8 @@ public class MouseController implements MouseListener,MouseMotionListener {
 			/*
 			 * calculate offset
 			 */
-			mouseOffsetX = x - selectedElement.getX() * scale ;
-			mouseOffsetY = y - selectedElement.getY() * scale ;	
+			mouseOffsetX = x - (selectedElement.getX() - view.getTranslateX()) * scale ;
+			mouseOffsetY = y - (selectedElement.getY() - view.getTranslateY()) * scale ;	
 		}
 		
 	}
@@ -168,10 +175,20 @@ public class MouseController implements MouseListener,MouseMotionListener {
 		int x = e.getX();
 		int y = e.getY();
 		double scale = view.getScale();
+		double translate_scale = scale / view.getOverviewScale();
 		/*
 		 * Aufgabe 1.2
 		 */
-		if (fisheyeMode){
+		if(view.getOverview().contains(x, y)) {
+			   Rectangle2D marker = view.getMarker();
+			   if(marker.contains(x, y)) {
+				   //System.out.println("drag_marker");
+				   view.updateMarker((e.getX() - mouseOffsetX), (e.getY() - mouseOffsetY));
+				   double markerOffsetX = (e.getX() - mouseOffsetX - view.getOverview().getX()) * translate_scale;
+				   double markerOffsetY = (e.getY() - mouseOffsetY - view.getOverview().getY()) * translate_scale;
+				   view.updateTranslation(-markerOffsetX, -markerOffsetY);
+			   }
+		} else if (fisheyeMode){ 
 			/*
 			 * handle fisheye mode interactions
 			 */
