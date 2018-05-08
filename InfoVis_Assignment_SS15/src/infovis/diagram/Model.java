@@ -102,4 +102,35 @@ public class Model {
 		return elements;
 	}
 	
+	public double getMaxY() {
+		double max = 0;
+		for (Element element: elements){
+			if (element.getY() > max) max = element.getY();
+		}
+		
+		return max + 20;
+	}
+	
+
+	public double getMaxX() {
+		double max = 0;
+		for (Element element: elements){
+			if (element.getX() > max) max = element.getX();
+		}
+		
+		return max + 20;
+	}
+	
+	public double getMaxDim() {
+		double max_y = 0;
+		double max_x = 0;
+		for (Element element: elements){
+			if (element.getX() > max_x) max_x = element.getX();
+			if (element.getY() > max_y) max_y = element.getY();
+		}
+		
+		if (max_x > max_y) return max_x;
+		return max_y;
+	}
+	
 }

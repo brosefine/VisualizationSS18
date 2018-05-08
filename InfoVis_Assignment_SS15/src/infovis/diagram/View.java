@@ -20,7 +20,7 @@ public class View extends JPanel{
 	private double translateX= 0;
 	private double translateY=0;
 	private Rectangle2D marker = new Rectangle2D.Double();
-	private Rectangle2D overviewRect = new Rectangle2D.Double();   
+	private Rectangle2D overviewRect = new Rectangle2D.Double(0, 0, 300, 250);   
 
 	public Model getModel() {
 		return model;
@@ -39,16 +39,36 @@ public class View extends JPanel{
 	public void paint(Graphics g) {
 		
 		Graphics2D g2D = (Graphics2D) g;
+		
+		double overviewScale = overviewRect.getHeight() / model.getMaxY();
+		if(overviewRect.getWidth()/model.getMaxX() < overviewScale) overviewScale = overviewRect.getWidth()/model.getMaxX();
+		
 		g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
 		g2D.clearRect(0, 0, getWidth(), getHeight());
-		
-		
+		g2D.scale(scale, scale);
 		
 		paintDiagram(g2D);
+		//back to normal size
+		g2D.scale(1/scale, 1/scale);
+		//draw overview
+		g2D.setColor(Color.WHITE);
+		g2D.fill(overviewRect);
+		g2D.setColor(Color.BLACK);
+		g2D.draw(overviewRect);
+		g2D.translate(overviewRect.getX(), overviewRect.getY());
+				
+		g2D.setClip(overviewRect);
+		g2D.scale(overviewScale, overviewScale);
+				
+		paintDiagram(g2D);
 		
-		
-		
-		
+		g2D.scale(1/scale, 1/scale);
+		//set marker
+		marker.setRect(0, 0, getWidth(), getHeight());
+		//draw marker
+		g2D.setColor(Color.RED);
+		g2D.draw(marker);
+
 	}
 	private void paintDiagram(Graphics2D g2D){
 		for (Element element: model.getElements()){
