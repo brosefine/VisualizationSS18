@@ -6,7 +6,7 @@ import com.sun.org.apache.regexp.internal.recompile;
 
 public class Data{
 	private double [] values;
-	private Color color = Color.BLACK;
+	private Color color = Color.RED;
 	private String label = "";
 	
 	public Data(double[] values, String label) {
