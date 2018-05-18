@@ -2,14 +2,11 @@ package infovis.scatterplot;
 
 import infovis.debug.Debug;
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Line2D;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
+import java.awt.*;
+import java.awt.geom.*;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
+import java.lang.annotation.AnnotationFormatError;
 
 import javax.swing.JPanel;
 
@@ -55,10 +52,29 @@ public class View extends JPanel {
 			else dimGrid = (getHeight() - padding) / numberOfLabels;
 
 			matrixRectangle = new Rectangle2D.Double(10.0, 10.0, numberOfLabels*dimGrid, numberOfLabels*dimGrid);
-			
+
+			BufferedImage bufferedImage = new BufferedImage((int)(matrixRectangle.getMaxX()), (int)(matrixRectangle.getMaxY()), BufferedImage.TYPE_INT_ARGB);
+			Graphics2D img2d = bufferedImage.createGraphics();
+			img2d.setComposite(AlphaComposite.Clear);
+			img2d.fillRect(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight());
+			img2d.setComposite(AlphaComposite.Src);
+			img2d.translate(matrixRectangle.getX(), matrixRectangle.getY());
+
 			g2D.setColor(Color.BLACK);
 			g2D.draw(matrixRectangle);
-			
+
+			for(int i = 0; i < numberOfLabels; i++){
+				for(int j = 0; j < i; j++){
+					paintScatterPlot(img2d, dimGrid, i, j);
+				}
+			}
+
+			for (int x = 0; x < bufferedImage.getWidth(); x++) {
+				for (int y = 0; y < x; y++) {
+					bufferedImage.setRGB(y, x, bufferedImage.getRGB(x, y));
+				}
+			}
+			g2D.drawImage(bufferedImage, 0,0, bufferedImage.getWidth(), bufferedImage.getHeight(), null);
 			//TODO Label beschriften
 
 			double x_begin, x_end, y_begin, y_end;
@@ -80,11 +96,12 @@ public class View extends JPanel {
 			}
 
 			g2D.translate(matrixRectangle.getX(), matrixRectangle.getY());
-			for(int i = 0; i < numberOfLabels; i++){
+			//for(int i = 0; i < numberOfLabels; i++){
 				for(int j = 0; j < numberOfLabels; j++){
-					paintScatterPlot(g2D, dimGrid, i, j);
+					paintScatterPlot(g2D, dimGrid, j, j);
 				}
-			}
+			//}
+
 
 
 			g2D.setColor(Color.GREEN);
