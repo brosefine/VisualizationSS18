@@ -1,5 +1,7 @@
 package infovis.scatterplot;
 
+import infovis.diagram.elements.None;
+
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -14,7 +16,10 @@ public class MouseController implements MouseListener, MouseMotionListener {
 
 	private Model model = null;
 	private View view = null;
-	private double start_x, start_y;
+    private boolean draw_rect = false;
+	private double start_x, start_y, padding_x, padding_y;
+	private double range_min_x, range_min_y, range_max_x, range_max_y;
+	private double scaling_x, scaling_y, local_min_x, local_min_y;
 	private int id_x, id_y;
 
 	public void mouseClicked(MouseEvent arg0) {
@@ -27,17 +32,30 @@ public class MouseController implements MouseListener, MouseMotionListener {
 	}
 
 	public void mousePressed(MouseEvent e) {
+
 	    Rectangle2D matrix = view.getMatrixRectangle();
 	    double dim = view.getDimGrid();
         start_x = e.getX();
         start_y = e.getY();
+        padding_x = matrix.getX();
+        padding_y = matrix.getY();
 
 	    if(matrix.contains(start_x, start_y)) {
 
-            start_x = start_x - matrix.getX();
-            start_y = start_y - matrix.getY();
+            start_x = start_x - padding_x;
+            start_y = start_y - padding_y;
             id_x = (int)(start_x / dim);
             id_y = (int)(start_y / dim);
+            range_min_x = model.getRanges().get(id_x).getMin();
+            range_max_x = model.getRanges().get(id_x).getMax();
+            range_min_y = model.getRanges().get(id_y).getMin();
+            range_max_y = model.getRanges().get(id_y).getMax();
+            scaling_x = dim / (range_max_x - range_min_x);
+            scaling_y = dim / (range_max_y - range_min_y);
+
+            local_min_x = id_x * dim + padding_x;
+            local_min_y = id_y * dim + padding_y;
+            draw_rect = true;
 
 
             //Iterator<Data> iter = model.iterator();
@@ -47,57 +65,38 @@ public class MouseController implements MouseListener, MouseMotionListener {
 	}
 
 	public void mouseReleased(MouseEvent arg0) {
+	    draw_rect = false;
 	}
 
 	public void mouseDragged(MouseEvent e) {
-        double padding_x = view.getMatrixRectangle().getX();
-        double padding_y = view.getMatrixRectangle().getY();
-        double pos_x = e.getX() - padding_x;
-        double pos_y = e.getY() - padding_y;
-        double dim = view.getDimGrid();
+        if(draw_rect) {
+            double pos_x = e.getX() - padding_x;
+            double pos_y = e.getY() - padding_y;
+            double dim = view.getDimGrid();
+
+            double min_x = max(min(start_x, pos_x), id_x * dim);
+            double min_y = max(min(start_y, pos_y), id_y * dim);
+            double max_x = min(max(start_x, pos_x), (id_x + 1) * dim);
+            double max_y = min(max(start_y, pos_y), (id_y + 1) * dim);
+            view.setMarkerRectangle(min_x, min_y, max_x, max_y);
+
+            min_x = min_x - local_min_x + padding_x;
+            max_x = max_x - local_min_x + padding_y;
+            min_y = min_y - local_min_y + padding_x;
+            max_y = max_y - local_min_y + padding_y;
+
+            for (Data d : model.getList()) {
+                double d_x = (d.getValue(id_x) - range_min_x) * scaling_x;
+                double d_y = (d.getValue(id_y) - range_min_y) * scaling_y;
+
+                if (min_x <= d_x && d_x <= max_x && min_y <= d_y && d_y <= max_y) {
+                    d.setColor(Color.GREEN);
+                } else {
+                    d.setColor(Color.RED);
+                }
 
 
-        double min_x = max(min(start_x, pos_x), id_x * dim);
-        double min_y = max(min(start_y, pos_y), id_y * dim);
-        double max_x = min(max(start_x, pos_x), (id_x + 1) * dim);
-        double max_y = min(max(start_y, pos_y), (id_y + 1) * dim);
-        view.setMarkerRectangle(min_x, min_y, max_x, max_y);
-
-        double x_min = model.getRanges().get(id_x).getMin();
-        double x_max = model.getRanges().get(id_x).getMax();
-        double y_min = model.getRanges().get(id_y).getMin();
-        double y_max = model.getRanges().get(id_y).getMax();
-
-        double local_min_x = id_x * dim + padding_x;
-        double local_min_y = id_y * dim + padding_y;
-        //double local_max_x = (id_x + 1) * dim + padding_x;
-        //double local_max_y = (id_y + 1) * dim + padding_y;
-
-        //System.out.println(local_max_x + " , " + local_max_y + " , " + local_min_x + " , " + local_min_y);
-
-        min_x = min_x - local_min_x + padding_x;
-        max_x = max_x - local_min_x + padding_y;
-        min_y = min_y - local_min_y + padding_x;
-        max_y = max_y - local_min_y + padding_y;
-
-        //System.out.println("x: " + min_x + " - " + max_x + " y: " + min_y + " - " + max_y);
-
-        double scaling_x = dim / (x_max - x_min);
-        double scaling_y = dim / (y_max - y_min);
-
-        for(Data d : model.getList()){
-            double d_x = (d.getValue(id_x) - x_min) * scaling_x;
-            double d_y = (d.getValue(id_y) - y_min) * scaling_y;
-
-            if(min_x <= d_x && d_x <= max_x && min_y <= d_y && d_y <= max_y){
-                d.setColor(Color.GREEN);
-                System.out.println(d.getLabel());
-            } else {
-                d.setColor(Color.RED);
             }
-
-
-
         }
 
 
