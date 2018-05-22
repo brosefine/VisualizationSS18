@@ -14,7 +14,7 @@ public class View extends JPanel {
 	private Axis[] axis;
 	private double width = 0;
 	private double height = 0;
-	private double padding = 10.0;
+	private double padding = 100.0;
 	private double distance = 0;
 	private Rectangle2D viewRect = new Rectangle2D.Double(padding, padding, 0, 0);
 	private boolean swap = false;
@@ -47,13 +47,14 @@ public class View extends JPanel {
 		for(Axis a : axis){
 			g2D.setColor(a.getColor());
 			g2D.draw(a.getLine());
+			g2D.drawString(a.getLabel(),(float) (a.getPos() - a.getLabel_length()/2), (float) (a.getLength() + padding/2));
 		}
 
-		if(!swap) {
+		//if(!swap) {
 			for (Data d : model.getList()) {
 				drawParaLine(d, g2D);
 			}
-		}
+		//}
 
 	}
 
@@ -78,6 +79,10 @@ public class View extends JPanel {
 			a.setId(i);
 			a.setRange(model.getRanges().get(i));
 			a.setScale();
+			a.setLabel(model.getLabels().get(i));
+			FontMetrics fm = getFontMetrics( getFont() );
+			int width = fm.stringWidth(a.getLabel());
+			a.setLabel_length(width);
 			axis[i] = a;
 		}
 	}
@@ -87,14 +92,14 @@ public class View extends JPanel {
 		g2D.setColor(d.getColor());
 		for (int i = 0; i < axis.length - 1; i++) {
 			if (i == 0) {
-				x1 = distance * i;
-				x2 = distance * (i + 1);
+				x1 = axis[i].getPos();
+				x2 = axis[i+1].getPos();
 				y1 = axis[i].getLength() - (d.getValue(axis[i].getId()) - axis[i].getRange().getMin()) * axis[i].getScale();
 				y2 = axis[i + 1].getLength() - (d.getValue(axis[i + 1].getId())- axis[i + 1].getRange().getMin()) * axis[i + 1].getScale();
 			} else {
 				x1 = x2;
 				y1 = y2;
-				x2 = distance * (i + 1);
+				x2 = axis[i+1].getPos();
 				y2 = axis[i + 1].getLength() - (d.getValue(axis[i + 1].getId())- axis[i + 1].getRange().getMin()) * axis[i + 1].getScale();
 			}
 			g2D.draw(new Line2D.Double(x1, y1, x2, y2));

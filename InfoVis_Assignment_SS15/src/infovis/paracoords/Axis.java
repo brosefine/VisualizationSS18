@@ -11,6 +11,8 @@ public class Axis {
     private int id_ = 0;
     private Range range;
     private Color color = Color.BLACK;
+    private String label = "";
+    private double label_length = 0;
 
 
     private double scale;
@@ -66,6 +68,22 @@ public class Axis {
     public void setScale() {
         this.scale = 1.0 / (range.getMax() - range.getMin());
     }
+
+	public String getLabel() {
+		return label;
+	}
+
+	public void setLabel(String label) {
+		this.label = label;
+	}
+
+	public double getLabel_length() {
+		return label_length;
+	}
+
+	public void setLabel_length(double label_length) {
+		this.label_length = label_length;
+	}
 
 
 }

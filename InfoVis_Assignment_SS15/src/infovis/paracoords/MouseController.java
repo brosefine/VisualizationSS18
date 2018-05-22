@@ -36,22 +36,22 @@ public class MouseController implements MouseListener, MouseMotionListener {
 		if(view.getViewRect().contains(e.getX(), e.getY())) {
 			double x = e.getX() - view.getPadding();
 			double y = e.getY() - view.getPadding();
-			if(view.swap()){
-				for (int i = 0; i < view.getAxis().length; i++) {
-					Axis a = view.getAxis()[i];
-					if (abs(a.getPos() - x) < rad) {
-						right_id = i;
-						view.repaint();
-						view.swapAxis(left_id, right_id);
-						view.repaint();
-						view.toggleSwap();
-						view.getAxis()[right_id].setColor(Color.BLACK);
-						view.getAxis()[left_id].setColor(Color.BLACK);
-						view.repaint();
-						return;
-					}
-				}
-			}
+//			if(view.swap()){
+//				for (int i = 0; i < view.getAxis().length; i++) {
+//					Axis a = view.getAxis()[i];
+//					if (abs(a.getPos() - x) < rad) {
+//						right_id = i;
+//						view.repaint();
+//						view.swapAxis(left_id, right_id);
+//						view.repaint();
+//						view.toggleSwap();
+//						view.getAxis()[right_id].setColor(Color.BLACK);
+//						view.getAxis()[left_id].setColor(Color.BLACK);
+//						view.repaint();
+//						return;
+//					}
+//				}
+//			}
 
 			for (int i = 0; i < view.getAxis().length; i++) {
 				Axis a = view.getAxis()[i];
@@ -97,6 +97,19 @@ public class MouseController implements MouseListener, MouseMotionListener {
 	}
 
 	public void mouseDragged(MouseEvent e) {
+		if(view.swap()) {
+			double x = e.getX() - view.getPadding();
+			view.getAxis()[left_id].setPos(x);
+			if(view.getAxis()[left_id -1].getPos() > x) {
+				view.swapAxis(left_id, left_id - 1);
+				--left_id;
+			} else if (view.getAxis()[left_id + 1].getPos() < x) {
+				view.swapAxis(left_id, left_id + 1);
+				++left_id;
+			}
+			view.repaint();
+			
+		}
 
 	}
 
