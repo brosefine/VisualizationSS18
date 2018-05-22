@@ -88,7 +88,7 @@ public class Vertex implements Element {
 	}
 
 	public double getHeight() {
-		//return shape.getHeight();
+		//return shape.getLength();
 		return shape.getHeight();
 	}
 
