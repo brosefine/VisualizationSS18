@@ -8,6 +8,7 @@ import infovis.diagram.elements.GroupingRectangle;
 import infovis.diagram.elements.None;
 import infovis.diagram.elements.Vertex;
 import infovis.diagram.layout.Fisheye;
+import infovis.diagram.layout.Layout;
 
 import java.awt.Color;
 import java.awt.event.MouseEvent;
@@ -28,6 +29,7 @@ public class MouseController implements MouseListener,MouseMotionListener {
 	 private DrawingEdge drawingEdge = null;
 	 private boolean fisheyeMode;
 	 private GroupingRectangle groupRectangle;
+	 private Layout layout = new Fisheye();
 	/*
 	 * Getter And Setter
 	 */
@@ -104,9 +106,8 @@ public class MouseController implements MouseListener,MouseMotionListener {
 			drawingEdge = new DrawingEdge((Vertex)getElementContainingPosition(x/scale,y/scale));
 			model.addElement(drawingEdge);
 		} else if (fisheyeMode){
-			/*
-			 * do handle interactions in fisheye mode
-			 */
+			layout.transform(model, view);
+			System.out.println("button pressed in fisheye");
 			view.repaint();
 		} else {
 			

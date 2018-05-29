@@ -22,7 +22,8 @@ public class View extends JPanel{
 	private double translateX= 0;
 	private double translateY=0;
 	private Rectangle2D marker = new Rectangle2D.Double(0, 0, 300, 250);
-	private Rectangle2D overviewRect = new Rectangle2D.Double(0, 0, 300, 250);   
+	private Rectangle2D overviewRect = new Rectangle2D.Double(0, 0, 300, 250); 
+	private boolean showOverview = true;
 
 	public Model getModel() {
 		return model;
@@ -35,6 +36,10 @@ public class View extends JPanel{
 	}
 	public void setColor(Color color) {
 		this.color = color;
+	}
+	
+	public void setOverview(boolean show) {
+		this.showOverview = show;
 	}
 
 	
@@ -56,6 +61,7 @@ public class View extends JPanel{
 		//back to normal size , position
 		g2D.scale(1/scale, 1/scale);
 		g2D.translate(-translateX, -translateY);
+		if(showOverview) {
 		//draw overview
 		g2D.setColor(Color.WHITE);
 		g2D.fill(overviewRect);
@@ -65,6 +71,7 @@ public class View extends JPanel{
 				
 		g2D.setClip(overviewRect);
 		g2D.scale(overviewScale, overviewScale);
+		
 		
 		paintDiagram(g2D);
 		//diagram in overviewworld
@@ -77,6 +84,7 @@ public class View extends JPanel{
 		//draw marker
 		g2D.setColor(Color.RED);
 		g2D.draw(marker);
+		}
 		
 		
 

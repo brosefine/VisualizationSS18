@@ -61,6 +61,14 @@ public class Vertex implements Element {
 	public double getY() {
 		return shape.getY();
 	}
+	
+	public double getMAxX() {
+		return shape.getMaxX();
+	}
+
+	public double getMaxY() {
+		return shape.getMaxY();
+	}
 
 	public void setX(double x) {
 		shape.setFrame(x, getY(),getWidth() , getHeight());	

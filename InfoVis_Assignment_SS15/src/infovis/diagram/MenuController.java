@@ -87,6 +87,8 @@ public class MenuController {
 	public void startFisheyeMode(){
 		//view.setModel(model.getModel(new Fisheye(), view));
 		mouseControllerAddedToView.setFisheyeMode(true);
+		System.out.println("startFisheyeMode");
+		view.setOverview(false);
 		//view.repaint();
 	}
 	public void stopFisheyeMode(){
