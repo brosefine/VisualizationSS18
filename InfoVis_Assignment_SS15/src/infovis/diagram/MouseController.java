@@ -106,9 +106,8 @@ public class MouseController implements MouseListener,MouseMotionListener {
 			drawingEdge = new DrawingEdge((Vertex)getElementContainingPosition(x/scale,y/scale));
 			model.addElement(drawingEdge);
 		} else if (fisheyeMode){
-			layout.transform(model, view);
 			System.out.println("button pressed in fisheye");
-			view.repaint();
+			//view.repaint();
 		} else {
 			
 			selectedElement = getElementContainingPosition(x/scale,y/scale);
@@ -190,10 +189,8 @@ public class MouseController implements MouseListener,MouseMotionListener {
 				   view.updateTranslation(-markerOffsetX, -markerOffsetY);
 			   }
 		} else if (fisheyeMode){ 
-			/*
-			 * handle fisheye mode interactions
-			 */
-			view.repaint();
+			layout.setMouseCoords(x, y, view);
+			//view.repaint();
 		} else if (edgeDrawMode){
 			drawingEdge.setX(e.getX());
 			drawingEdge.setY(e.getY());
@@ -215,10 +212,10 @@ public class MouseController implements MouseListener,MouseMotionListener {
 		fisheyeMode = b;
 		if (b){
 			Debug.p("new Fisheye Layout");
-			/*
-			 * handle fish eye initial call
-			 */
+			view.setModel(layout.transform(model, view));
 			view.repaint();
+			//layout.reset(model);
+			//view.repaint();
 		} else {
 			Debug.p("new Normal Layout");
 			view.setModel(model);

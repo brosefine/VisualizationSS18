@@ -85,13 +85,14 @@ public class View extends JPanel{
 		g2D.setColor(Color.RED);
 		g2D.draw(marker);
 		}
-		
-		
+
+		System.out.println("paint finished in view");
 
 	}
 	private void paintDiagram(Graphics2D g2D){
 		for (Element element: model.getElements()){
 			element.paint(g2D);
+
 		}
 	}
 	

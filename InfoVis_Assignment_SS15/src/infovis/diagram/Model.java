@@ -15,7 +15,15 @@ public class Model {
 	private List<Vertex>  vertices  = new ArrayList<Vertex>();
 	private List<Edge>    edges = new ArrayList<Edge>();
     
-   
+
+	public Model(){}
+
+	public Model(Model m){
+		this.elements = m.elements;
+		this.vertices = m.vertices;
+		this.edges = m.edges;
+	}
+
 	public void addVertex(Vertex v){
 		vertices.add(v);
 		elements.add(v);

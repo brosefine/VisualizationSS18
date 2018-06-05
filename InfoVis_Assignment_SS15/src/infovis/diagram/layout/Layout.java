@@ -9,5 +9,6 @@ public interface Layout {
 
 	public void setMouseCoords(int x, int y, View view);
 	public Model transform(Model model, View view);
+	public Model reset(Model model);
 	
 }
