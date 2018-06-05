@@ -19,6 +19,7 @@ public class MouseController implements MouseListener, MouseMotionListener {
 	Axis left, right;
 	int left_id, right_id;
 	double rad = 5.0, x1, x2, y1, y2;
+	boolean drag = false;
 	
 	public void mouseClicked(MouseEvent e) {
 		
@@ -33,6 +34,7 @@ public class MouseController implements MouseListener, MouseMotionListener {
 	}
 
 	public void mousePressed(MouseEvent e) {
+		drag = false;
 		if(view.getViewRect().contains(e.getX(), e.getY())) {
 			double x = e.getX() - view.getPadding();
 			double y = e.getY() - view.getPadding();
@@ -56,10 +58,9 @@ public class MouseController implements MouseListener, MouseMotionListener {
 			for (int i = 0; i < view.getAxis().length; i++) {
 				Axis a = view.getAxis()[i];
 				if (abs(a.getPos() - x) < rad){
+					drag = true;
 					view.toggleSwap();
 					left_id = i;
-					a.setColor(Color.BLUE);
-					view.repaint();
 					return;
 				}
 				if (a.getPos() <= x) {
@@ -71,6 +72,8 @@ public class MouseController implements MouseListener, MouseMotionListener {
 					break;
 				}
 			}
+
+
 
 			for(Data d : model.getList()){
 				y1 = left.getLength() - (d.getValue(left.getId()) - left.getRange().getMin()) * left.getScale();
@@ -97,15 +100,19 @@ public class MouseController implements MouseListener, MouseMotionListener {
 	}
 
 	public void mouseDragged(MouseEvent e) {
-		if(view.swap()) {
+		if(drag) {
 			double x = e.getX() - view.getPadding();
 			view.getAxis()[left_id].setPos(x);
-			if(view.getAxis()[left_id -1].getPos() > x) {
-				view.swapAxis(left_id, left_id - 1);
-				--left_id;
-			} else if (view.getAxis()[left_id + 1].getPos() < x) {
-				view.swapAxis(left_id, left_id + 1);
-				++left_id;
+			if(left_id != 0) {
+				if (view.getAxis()[left_id - 1].getPos() > x) {
+					view.swapAxis(left_id, left_id - 1);
+					--left_id;
+				}
+			} if(left_id != model.getDim() - 1){
+				if (view.getAxis()[left_id + 1].getPos() < x) {
+					view.swapAxis(left_id, left_id + 1);
+					++left_id;
+				}
 			}
 			view.repaint();
 			
