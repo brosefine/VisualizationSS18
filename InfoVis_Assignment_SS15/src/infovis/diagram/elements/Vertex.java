@@ -52,7 +52,7 @@ public class Vertex implements Element {
 		g2D.fill(shape);
 		g2D.setColor(Color.BLACK);
 		g2D.draw(shape);
-		System.out.println(shape.getX() + " , " + shape.getY() + " , " +  shape.getWidth() + " , " + shape.getHeight());
+		//System.out.println(shape.getX() + " , " + shape.getY() + " , " +  shape.getWidth() + " , " + shape.getHeight());
 	}
 
 	public double getX() {

@@ -67,9 +67,10 @@ public class View extends JPanel{
 		g2D.fill(overviewRect);
 		g2D.setColor(Color.BLACK);
 		g2D.draw(overviewRect);
+		g2D.setClip(overviewRect);
 		g2D.translate(overviewRect.getX(), overviewRect.getY());
 				
-		g2D.setClip(overviewRect);
+
 		g2D.scale(overviewScale, overviewScale);
 		
 		
@@ -80,10 +81,12 @@ public class View extends JPanel{
 		//g2D.scale(1/scale, 1/scale);
 		//set marker
 		setMarker(marker.getX(), marker.getY(), getWidth()*marker_scale, getHeight()*marker_scale);
+		//System.out.println(marker.getX() + " , " + marker.getY());
 		//updateMarker(marker.getX(), marker.getY());
 		//draw marker
 		g2D.setColor(Color.RED);
 		g2D.draw(marker);
+		g2D.translate(-overviewRect.getX(), -overviewRect.getY());
 		}
 
 		System.out.println("paint finished in view");
@@ -105,6 +108,7 @@ public class View extends JPanel{
 	public double getOverviewScale(){
 		return overviewScale;
 	}
+	public void setOverviewRect(double x, double y){this.overviewRect.setRect(x, y, overviewRect.getWidth(), overviewRect.getHeight());}
 	public double getTranslateX() {
 		return translateX;
 	}
