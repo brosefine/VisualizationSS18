@@ -94,6 +94,9 @@ void main()
 #endif 
     
 #if TASK == 11
+
+    int steps = 0;
+    vec4 accumulated_val = vec4(0.0, 0.0, 0.0, 0.0);
     // the traversal loop,
     // termination when the sampling position is outside volume boundarys
     // another termination condition for early ray termination is added
@@ -101,44 +104,47 @@ void main()
     {      
         // get sample
         float s = get_sample_data(sampling_pos);
-
+        vec4 color = texture(transfer_texture, vec2(s, s));
         // dummy code
-        dst = vec4(sampling_pos, 1.0);
+        //dst = vec4(1.0, 0.0, 0.0, 1.0);
+        accumulated_val += color;
         
         // increment the ray sampling position
         sampling_pos  += ray_increment;
 
         // update the loop termination condition
         inside_volume  = inside_volume_bounds(sampling_pos);
+
+        steps ++;
     }
+
+    dst = accumulated_val / steps;
 #endif
     
 #if TASK == 12 || TASK == 13
     // the traversal loop,
     // termination when the sampling position is outside volume boundarys
     // another termination condition for early ray termination is added
-    while (inside_volume)
+    while (inside_volume && con)
     {
         // get sample
         float s = get_sample_data(sampling_pos);
-
         // dummy code
         dst = vec4(light_diffuse_color, 1.0);
-
         // increment the ray sampling position
         sampling_pos += ray_increment;
-#if TASK == 13 // Binary Search
-        IMPLEMENT;
-#endif
-#if ENABLE_LIGHTNING == 1 // Add Shading
-        IMPLEMENTLIGHT;
-#if ENABLE_SHADOWING == 1 // Add Shadows
-        IMPLEMENTSHADOW;
-#endif
-#endif
+    #if TASK == 13 // Binary Search
+            IMPLEMENT;
+    #endif
+    #if ENABLE_LIGHTNING == 1 // Add Shading
+            IMPLEMENTLIGHT;
+    #if ENABLE_SHADOWING == 1 // Add Shadows
+            IMPLEMENTSHADOW;
+    #endif
+    #endif
 
-        // update the loop termination condition
-        inside_volume = inside_volume_bounds(sampling_pos);
+            // update the loop termination condition
+            inside_volume = inside_volume_bounds(sampling_pos);
     }
 #endif 
 
@@ -149,23 +155,23 @@ void main()
     while (inside_volume)
     {
         // get sample
-#if ENABLE_OPACITY_CORRECTION == 1 // Opacity Correction
-        IMPLEMENT;
-#else
-        float s = get_sample_data(sampling_pos);
-#endif
-        // dummy code
-        dst = vec4(light_specular_color, 1.0);
+    #if ENABLE_OPACITY_CORRECTION == 1 // Opacity Correction
+            IMPLEMENT;
+    #else
+            float s = get_sample_data(sampling_pos);
+    #endif
+            // dummy code
+            dst = vec4(light_specular_color, 1.0);
 
-        // increment the ray sampling position
-        sampling_pos += ray_increment;
+            // increment the ray sampling position
+            sampling_pos += ray_increment;
 
-#if ENABLE_LIGHTNING == 1 // Add Shading
-        IMPLEMENT;
-#endif
+    #if ENABLE_LIGHTNING == 1 // Add Shading
+            IMPLEMENT;
+    #endif
 
-        // update the loop termination condition
-        inside_volume = inside_volume_bounds(sampling_pos);
+            // update the loop termination condition
+            inside_volume = inside_volume_bounds(sampling_pos);
     }
 #endif 
 
