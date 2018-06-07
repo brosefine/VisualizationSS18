@@ -31,20 +31,35 @@ uniform vec3    light_specular_color;
 uniform float   light_ref_coef;
 
 
-bool
-inside_volume_bounds(const in vec3 sampling_position)
+bool inside_volume_bounds(const in vec3 sampling_position)
 {
     return (   all(greaterThanEqual(sampling_position, vec3(0.0)))
             && all(lessThanEqual(sampling_position, max_bounds)));
 }
 
 
-float
-get_sample_data(vec3 in_sampling_pos)
+float get_sample_data(vec3 in_sampling_pos)
 {
     vec3 obj_to_tex = vec3(1.0) / max_bounds;
     return texture(volume_texture, in_sampling_pos * obj_to_tex).r;
 
+}
+
+float binary_search(float low, float high){
+    float epsilon = 0.00001;
+    float mid;
+
+    while(low <= high){
+        mid = low + (high-low)/2;
+        if(mid < iso_value + epsilon || mid > iso_value + epsilon){
+            return mid;
+        } else if(mid > iso_value){
+            high = mid;
+        } else {
+            low = mid;
+        }
+    }
+    return mid;
 }
 
 void main()
@@ -122,19 +137,22 @@ void main()
 #endif
     
 #if TASK == 12 || TASK == 13
+    float s = 0;
     // the traversal loop,
     // termination when the sampling position is outside volume boundarys
     // another termination condition for early ray termination is added
-    while (inside_volume && con)
+    while (inside_volume && s < iso_value)
     {
         // get sample
-        float s = get_sample_data(sampling_pos);
+        s = get_sample_data(sampling_pos);
         // dummy code
-        dst = vec4(light_diffuse_color, 1.0);
-        // increment the ray sampling position
-        sampling_pos += ray_increment;
+        dst = texture(transfer_texture, vec2(s, s));
     #if TASK == 13 // Binary Search
-            IMPLEMENT;
+            if(s > iso_value){
+                float prev = get_sample_data(sampling_pos - ray_increment);
+                float d = binary_search(prev, s);
+                dst = texture(transfer_texture, vec2(d, d));
+            }
     #endif
     #if ENABLE_LIGHTNING == 1 // Add Shading
             IMPLEMENTLIGHT;
@@ -144,7 +162,12 @@ void main()
     #endif
 
             // update the loop termination condition
-            inside_volume = inside_volume_bounds(sampling_pos);
+        // increment the ray sampling position
+        sampling_pos += ray_increment;
+        inside_volume = inside_volume_bounds(sampling_pos);
+    }
+    if(s < iso_value){
+        dst = vec4(0.0, 0.0, 0.0, 0.0);
     }
 #endif 
 
