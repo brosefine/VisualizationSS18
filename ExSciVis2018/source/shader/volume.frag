@@ -30,6 +30,8 @@ uniform vec3    light_diffuse_color;
 uniform vec3    light_specular_color;
 uniform float   light_ref_coef;
 
+float epsilon = 0.001;
+
 
 bool inside_volume_bounds(const in vec3 sampling_position)
 {
@@ -45,21 +47,25 @@ float get_sample_data(vec3 in_sampling_pos)
 
 }
 
-float binary_search(float low, float high){
-    float epsilon = 0.00001;
-    float mid;
+bool binary_search(vec3 low, vec3 high){
+    float val_low, val_high, val_mid;    
+    vec3 mid;
 
-    while(low <= high){
+    {
         mid = low + (high-low)/2;
-        if(mid < iso_value + epsilon || mid > iso_value + epsilon){
-            return mid;
-        } else if(mid > iso_value){
+        val_low = get_sample_data(low);
+        val_high = get_sample_data(high);
+        val_mid = get_sample_data(mid);
+
+        if(val_mid < iso_value + epsilon || val_mid > iso_value + epsilon){
+            return true;
+        } else if(val_mid > iso_value){
             high = mid;
         } else {
             low = mid;
         }
-    }
-    return mid;
+    } while(val_low <= val_high)
+    return false;
 }
 
 void main()
@@ -137,22 +143,28 @@ void main()
 #endif
     
 #if TASK == 12 || TASK == 13
-    float s = 0;
+    float s = 0, r = iso_value;
+    dst = vec4(0.0, 0.0, 0.0, 0.0);
     // the traversal loop,
     // termination when the sampling position is outside volume boundarys
     // another termination condition for early ray termination is added
-    while (inside_volume && s < iso_value)
+    while (inside_volume)
     {
         // get sample
         s = get_sample_data(sampling_pos);
-        // dummy code
-        dst = texture(transfer_texture, vec2(s, s));
+        //if(s < iso_value + epsilon && s > iso_value - epsilon){
+        if((s > iso_value && r < iso_value) || (s < iso_value && r > iso_value)){
+            dst = texture(transfer_texture, vec2(iso_value, iso_value));
+            break;
+        }
+
     #if TASK == 13 // Binary Search
-            if(s > iso_value){
-                float prev = get_sample_data(sampling_pos - ray_increment);
-                float d = binary_search(prev, s);
-                dst = texture(transfer_texture, vec2(d, d));
-            }
+            if(r < iso_value && s > iso_value && binary_search(sampling_pos - ray_increment, sampling_pos)){
+                dst = texture(transfer_texture, vec2(iso_value, iso_value));
+                break;
+            } else if(r > iso_value && s < iso_value && binary_search(sampling_pos, sampling_pos - ray_increment)){
+                dst = texture(transfer_texture, vec2(iso_value, iso_value));
+            } 
     #endif
     #if ENABLE_LIGHTNING == 1 // Add Shading
             IMPLEMENTLIGHT;
@@ -161,13 +173,12 @@ void main()
     #endif
     #endif
 
-            // update the loop termination condition
+        // save previous sample value
+        r = s;
         // increment the ray sampling position
         sampling_pos += ray_increment;
+        // update the loop termination condition
         inside_volume = inside_volume_bounds(sampling_pos);
-    }
-    if(s < iso_value){
-        dst = vec4(0.0, 0.0, 0.0, 0.0);
     }
 #endif 
 
