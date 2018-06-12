@@ -30,7 +30,7 @@ uniform vec3    light_diffuse_color;
 uniform vec3    light_specular_color;
 uniform float   light_ref_coef;
 
-float epsilon = 0.001;
+float epsilon = 0.0001;
 
 
 bool inside_volume_bounds(const in vec3 sampling_position)
@@ -47,9 +47,18 @@ float get_sample_data(vec3 in_sampling_pos)
 
 }
 
-bool binary_search(vec3 low, vec3 high){
+vec3 binary_search(vec3 low, vec3 high){
     float val_low, val_high, val_mid;    
     vec3 mid;
+
+    val_low = get_sample_data(low);
+    val_high = get_sample_data(high);
+
+    if(val_high < val_low){
+        mid = low;
+        low = high;
+        high = mid;
+    }
 
     {
         mid = low + (high-low)/2;
@@ -58,14 +67,41 @@ bool binary_search(vec3 low, vec3 high){
         val_mid = get_sample_data(mid);
 
         if(val_mid < iso_value + epsilon || val_mid > iso_value + epsilon){
-            return true;
+            return mid;
         } else if(val_mid > iso_value){
             high = mid;
         } else {
             low = mid;
         }
     } while(val_low <= val_high)
-    return false;
+
+    return vec3(0.0, 0.0, 0.0);
+}
+
+vec3 get_gradient(vec3 pos) {
+
+    float step_x = max_bounds.x / volume_dimensions.x;
+    float step_y = max_bounds.y / volume_dimensions.y;
+    float step_z = max_bounds.z / volume_dimensions.z;
+
+
+    float d_x = (get_sample_data(vec3(pos.x + step_x, pos.yz)) - get_sample_data(vec3(pos.x - step_x, pos.yz))) / 2;
+    float d_y = (get_sample_data(vec3(pos.x, pos.y + step_y, pos.z)) - get_sample_data(vec3(pos.x, pos.y - step_y, pos.z))) / 2;
+    float d_z = (get_sample_data(vec3(pos.xy, pos.z + step_z)) - get_sample_data(vec3(pos.xy, pos.z - step_z))) / 2;
+
+    return vec3(d_x, d_y, d_z);
+
+}
+
+vec3 diffuseLighting(vec3 color ,vec3 norm, vec3 light_dir){
+
+    float diffuseTerm = max(dot(norm,light_dir),0);
+    float diff_x = color.x * light_diffuse_color.x * diffuseTerm;
+    float diff_y = color.y * light_diffuse_color.y * diffuseTerm;
+    float diff_z = color.z * light_diffuse_color.z * diffuseTerm;
+
+    return vec3(diff_x, diff_y, diff_z);
+
 }
 
 void main()
@@ -155,24 +191,38 @@ void main()
         //if(s < iso_value + epsilon && s > iso_value - epsilon){
         if((s > iso_value && r < iso_value) || (s < iso_value && r > iso_value)){
             dst = texture(transfer_texture, vec2(iso_value, iso_value));
-            break;
-        }
 
     #if TASK == 13 // Binary Search
-            if(r < iso_value && s > iso_value && binary_search(sampling_pos - ray_increment, sampling_pos)){
+            sampling_pos = binary_search(sampling_pos - ray_increment, sampling_pos);
+            if(sampling_pos != vec3(0.0, 0.0, 0.0)){
                 dst = texture(transfer_texture, vec2(iso_value, iso_value));
-                break;
-            } else if(r > iso_value && s < iso_value && binary_search(sampling_pos, sampling_pos - ray_increment)){
-                dst = texture(transfer_texture, vec2(iso_value, iso_value));
-            } 
+            }
     #endif
     #if ENABLE_LIGHTNING == 1 // Add Shading
-            IMPLEMENTLIGHT;
+            vec3 normal = normalize(get_gradient(sampling_pos)) * -1;
+            vec3 light_dir = normalize(light_position - sampling_pos);
+            dst = vec4(diffuseLighting(dst.xyz, normal, light_dir), 1);
     #if ENABLE_SHADOWING == 1 // Add Shadows
-            IMPLEMENTSHADOW;
-    #endif
-    #endif
+            vec3 light_step = light_dir * sampling_distance;
+            vec3 shadow_sample = sampling_pos;
+            //r = iso_value;
+            while(inside_volume){
+                shadow_sample += light_step;
 
+                s = get_sample_data(shadow_sample);
+                r = get_sample_data(shadow_sample + light_step);
+                if((s > iso_value && r < iso_value) || (s < iso_value && r > iso_value)){
+                    dst = vec4(0.0,0.0,0.0,1.0);
+                    break;
+                }
+                r = s;
+                inside_volume = inside_volume_bounds(shadow_sample);
+
+            }
+    #endif
+    #endif
+            break;
+        }
         // save previous sample value
         r = s;
         // increment the ray sampling position
