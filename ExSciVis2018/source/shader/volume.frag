@@ -6,6 +6,7 @@
 #define ENABLE_OPACITY_CORRECTION 0
 #define ENABLE_LIGHTNING 0
 #define ENABLE_SHADOWING 0
+#define FRONT_TO_BACK 1
 
 in vec3 ray_entry_position;
 
@@ -233,26 +234,48 @@ void main()
 #endif 
 
 #if TASK == 31
+    float transparency = 1.0;
+    dst = vec4(0.0, 0.0, 0.0, 0.0);
+    #if FRONT_TO_BACK == 0 
+    while(inside_volume){
+        sampling_pos += ray_increment;
+        inside_volume = inside_volume_bounds(sampling_pos);
+    }
+    sampling_pos -= 2* ray_increment;
+    inside_volume = true;
+    #endif
     // the traversal loop,
     // termination when the sampling position is outside volume boundarys
     // another termination condition for early ray termination is added
     while (inside_volume)
     {
+            float s = get_sample_data(sampling_pos);
+            vec4 sample_color = texture(transfer_texture, vec2(s, s));
         // get sample
     #if ENABLE_OPACITY_CORRECTION == 1 // Opacity Correction
-            IMPLEMENT;
-    #else
-            float s = get_sample_data(sampling_pos);
+            float d = sampling_distance / sampling_distance_ref;
+            sample_color.a = 1 - pow((1 - sample_color.a), 255*d);
     #endif
-            // dummy code
-            dst = vec4(light_specular_color, 1.0);
+    #if ENABLE_LIGHTNING == 1 // Add Shading
+            vec3 normal = normalize(get_gradient(sampling_pos)) * -1;
+            vec3 light_dir = normalize(light_position - sampling_pos);
+            sample_color.xyz = diffuseLighting(sample_color.xyz, normal, light_dir);
+    #endif
+    #if FRONT_TO_BACK == 1
+            dst.xyz += sample_color.xyz * transparency * (sample_color.a);
+            transparency *= (1.0 - sample_color.a);
+            dst.a = 1.0 - transparency;
+
+            if(transparency < epsilon){ break; }
 
             // increment the ray sampling position
             sampling_pos += ray_increment;
-
-    #if ENABLE_LIGHTNING == 1 // Add Shading
-            IMPLEMENT;
+    #else
+            dst.xyz = sample_color.xyz * sample_color.a + dst.xyz * (1.0-sample_color.a);
+            dst.a += sample_color.a;
+            sampling_pos -= ray_increment;
     #endif
+
 
             // update the loop termination condition
             inside_volume = inside_volume_bounds(sampling_pos);
