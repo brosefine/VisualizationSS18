@@ -85,6 +85,11 @@ public class Model {
 		return idCounter;
 	}
 	public void generateTestValues(){
+		for (int i = 10 ; i <= 800; i += 70){
+			for (int j = 10 ; j <= 500; j += 30) {
+				addVertex(new Vertex(i, j));
+			}
+		}
 		addVertex(new Vertex(70,90));
     	addVertex(new Vertex(270,290));
     	addVertex(new Vertex(270,230));

@@ -89,8 +89,6 @@ public class View extends JPanel{
 		g2D.translate(-overviewRect.getX(), -overviewRect.getY());
 		}
 
-		System.out.println("paint finished in view");
-
 	}
 	private void paintDiagram(Graphics2D g2D){
 		for (Element element: model.getElements()){
